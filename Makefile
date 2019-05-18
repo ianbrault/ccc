@@ -1,13 +1,13 @@
 # Makefile
 
 cc := gcc
-cflags := -std=c11 -pie -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align -Wstrict-prototypes -Wformat=2
+cflags := -std=c11 -fPIE -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align -Wstrict-prototypes
 
 target := ccc
 src_dir := src
 obj_dir := build
 
-_objs := main.o
+_objs := main.o lex.o
 objs := $(patsubst %,$(obj_dir)/%,$(_objs))
 
 .PHONY: clean

@@ -10,75 +10,80 @@
 
 #include "lex.h"
 
-#define N_OPERATORS 2
-static const char operators[N_OPERATORS] = { '+', '-' };
-
-int is_operator(char c)
+int next_token(const char** start, token_t* t)
 {
-    for (int i = 0; i < N_OPERATORS; i++)
+    int rc = 0;
+
+    while (isspace(**start))
+        (*start)++;
+
+    char c = **start;
+    if (c == '+')
     {
-        if (c == operators[i])
-            return 1;
+        *t = (token_t) { OP_ADD, BINARY | ASSOC_L | 3, 0 };
+        (*start)++;
     }
-
-    return 0;
-}
-
-unsigned resize(token* tokens, unsigned size)
-{
-    unsigned new_size = size * 2;
-    tokens = realloc(tokens, new_size);
-    return new_size;
-}
-
-int tokenize(const char* input, token* tokens)
-{
-    if (tokens != NULL)
-        free(tokens);
-
-    // reallocation policy will be to double the size when it is exceeded
-    // more research is needed to determine if this is an appropriate starting value
-    // the idea is that most calculations will be relatively short
-    unsigned size = 16;
-    tokens = malloc(size * sizeof(token));
-
-    const char* start = input;
-    const char* end;
-    unsigned n_tokens = 0;
-
-    while (*start != 0)
+    else if (c == '-')
     {
-        while (isspace(*start))
-            start++;
-
-        if (is_operator(*start))
+        *t = (token_t) { OP_SUB, BINARY | ASSOC_L | 3, 0 };
+        (*start)++;
+    }
+    else if (c == '*')
+    {
+        *t = (token_t) { OP_MUL, BINARY | ASSOC_L | 2, 0 };
+        (*start)++;
+    }
+    else if (isdigit(c))
+    {
+        char* num_end;
+        int val = strtol(*start, &num_end, 10);
+        if (num_end != NULL)
         {
-            tokens[n_tokens] = (token) { .repr = start, .len = 1, .type = OPERATOR };
-            if (++n_tokens == size)
-                size = resize(tokens, size);
-
-            start++;
-        }
-        else if (isdigit(*start))
-        {
-            // find end of number
-            end = start + 1;
-            while (isdigit(*end))
-                end++;
-
-            tokens[n_tokens] = (token) { .repr = start, .len = (end - start), .type = LITERAL };
-            if (++n_tokens == size)
-                size = resize(tokens, size);
-
-            start = end;
+            *t = (token_t) { LITERAL, 0, val };
+            *start = num_end;
         }
         else
         {
-            // unexpected token found, return position as error condition
-            int pos = start - input;
-            return pos | (1 << 31);
+            rc = -1;
         }
     }
+    else
+    {
+        rc = -1;
+    }
 
-    return n_tokens;
+    return rc;
+}
+
+static unsigned resize(token_t** tokens, unsigned size)
+{
+    unsigned new_size = size * 2;
+    *tokens = realloc(*tokens, new_size);
+    return new_size;
+}
+
+token_t* tokenize(const char* input, int* n_tokens)
+{
+    int size = 16;
+    token_t* tokens = malloc(size * sizeof(token_t));
+
+    int rc;
+    const char* start = input;
+    *n_tokens = 0;
+    while (*start != 0)
+    {
+        rc = next_token(&start, &tokens[*n_tokens]);
+        if (rc < 0)
+        {
+            // unexpected token found, return position as error condition
+            int pos = start - input;
+            *n_tokens = pos | (1 << 31);
+            return NULL;
+        }
+
+        if (++(*n_tokens) == size)
+            size = resize(&tokens, size);
+    }
+
+    return tokens;
 }

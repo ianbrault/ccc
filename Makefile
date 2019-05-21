@@ -4,6 +4,7 @@ cc := gcc
 cflags := -std=c11 -fPIE -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align -Wstrict-prototypes
 
 target := ccc
+test_target := ccc_test
 
 base_dir   := $(shell pwd)
 src_dir    := $(base_dir)/src
@@ -30,7 +31,8 @@ clean:
 	rm -rf $(target) build/*
 
 test: cgreen $(build_dir)/test.o
-	$(cc) -o ccc_test $(build_dir)/test.o -L$(cgreen_lib) -lcgreen
+	$(cc) -o $(test_target) $(build_dir)/test.o -L$(cgreen_lib) -lcgreen
+	$(base_dir)/$(test_target)
 
 $(build_dir)/test.o: $(test_dir)/test.c
 	$(cc) -c -o $@ $< -I$(cgreen_inc)

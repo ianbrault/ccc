@@ -1,0 +1,3 @@
+[submodule "test/cgreen"]
+	path = test/cgreen
+	url = https://github.com/cgreen-devs/cgreen

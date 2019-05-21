@@ -5,15 +5,15 @@ cflags := -std=c11 -fPIE -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align -Ws
 
 target := ccc
 
-base_dir  := $(shell pwd)
-src_dir   := $(base_dir)/src
-build_dir := $(base_dir)/build
-check_dir := $(base_dir)/test/check
+base_dir   := $(shell pwd)
+src_dir    := $(base_dir)/src
+build_dir  := $(base_dir)/build
+cgreen_dir := $(base_dir)/test/cgreen
 
 _objs := main.o lex.o
 objs := $(patsubst %,$(build_dir)/%,$(_objs))
 
-.PHONY: clean test
+.PHONY: clean test cgreen
 
 $(target): $(objs)
 	if [ ! -d $(build_dir) ]; then mkdir $(build_dir); fi
@@ -23,7 +23,11 @@ $(build_dir)/%.o: $(src_dir)/%.c
 	$(cc) -c -o $@ $< $(cflags)
 
 clean:
-	rm -rf $(target) build
+	rm -rf $(target) build/*
 
-test:
-	
+test: cgreen
+	if [ ! -d $(build_dir) ]; then mkdir $(build_dir); fi
+	cd $(build_dir) \
+		&& cmake -DCMAKE_INSTALL_PREFIX=$(cgreen_dir) $(cgreen_dir) \
+		&& make && make install \
+		&& cd $(base_dir)

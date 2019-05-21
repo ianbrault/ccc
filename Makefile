@@ -27,7 +27,4 @@ clean:
 
 test: cgreen
 	if [ ! -d $(build_dir) ]; then mkdir $(build_dir); fi
-	cd $(build_dir) \
-		&& cmake -DCMAKE_INSTALL_PREFIX=$(cgreen_dir) $(cgreen_dir) \
-		&& make && make install \
-		&& cd $(base_dir)
+	cd $(build_dir) && cmake -DCMAKE_INSTALL_PREFIX=$(cgreen_dir) $(cgreen_dir) && make && make install && cd $(base_dir)

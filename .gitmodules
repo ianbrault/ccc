@@ -1,3 +1,0 @@
-[submodule "test/check"]
-	path = test/check
-	url = https://github.com/libcheck/check.git

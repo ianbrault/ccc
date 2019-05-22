@@ -18,17 +18,17 @@ int next_token(const char** start, token_t* t)
     char c = **start;
     if (c == '+')
     {
-        *t = (token_t) { OP_ADD, BINARY | ASSOC_L | 1, 0 };
+        *t = (token_t) { OP_ADD, BINARY | ASSOC_L | PRECEDENCE_OP_ADD_BINARY, 0 };
         (*start)++;
     }
     else if (c == '-')
     {
-        *t = (token_t) { OP_SUB, BINARY | ASSOC_L | 1, 0 };
+        *t = (token_t) { OP_SUB, BINARY | ASSOC_L | PRECEDENCE_OP_SUB_BINARY, 0 };
         (*start)++;
     }
     else if (c == '*')
     {
-        *t = (token_t) { OP_MUL, BINARY | ASSOC_L | 2, 0 };
+        *t = (token_t) { OP_MUL, BINARY | ASSOC_L | PRECEDENCE_OP_MUL, 0 };
         (*start)++;
     }
     else if (isdigit(c))
@@ -54,6 +54,24 @@ int next_token(const char** start, token_t* t)
         (*start)++;
 
     return rc;
+}
+
+static int is_operator(token_type type)
+{
+    return type == OP_ADD || type == OP_SUB || type == OP_MUL;
+}
+
+// determine which binary operators should be unary
+static void parse_unary_operators(token_t* tokens, int n_tokens)
+{
+    for (int i = 0; i < n_tokens; i++)
+    {
+        if (tokens[i].type == OP_ADD || tokens[i].type == OP_SUB)
+        {
+            if (i == 0 || (i > 0 && is_operator(tokens[i - 1].type)))
+                tokens[i].flags = UNARY | ASSOC_L | PRECEDENCE_OP_ADD_UNARY;
+        }
+    }
 }
 
 static unsigned resize(token_t** tokens, unsigned size)
@@ -89,6 +107,8 @@ token_t* tokenize(const char* input, int* n_tokens)
         if (++(*n_tokens) == size)
             size = resize(&tokens, size);
     }
+
+    parse_unary_operators(tokens, *n_tokens);
 
     return tokens;
 }

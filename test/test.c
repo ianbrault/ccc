@@ -12,23 +12,25 @@
 Ensure(test_tokenize_valid)
 {
     int n_tokens;
-    const char* input = "  1+  23 * -456";
+    const char* input = "  +1+  23 * -456";
     token_t* t = tokenize(input, &n_tokens);
 
     assert_that(t != NULL);
-    assert_that(n_tokens == 6);
-    assert_that(t[0].type == LITERAL);
-    assert_that(t[0].value == 1);
-    assert_that(t[1].type == OP_ADD);
-    assert_that(t[1].flags == (BINARY | ASSOC_L | 1));
-    assert_that(t[2].type == LITERAL);
-    assert_that(t[2].value == 23);
-    assert_that(t[3].type == OP_MUL);
-    assert_that(t[3].flags == (BINARY | ASSOC_L | 2));
-    assert_that(t[4].type == OP_SUB);
-    assert_that(t[4].flags == (BINARY | ASSOC_L | 1));
-    assert_that(t[5].type == LITERAL);
-    assert_that(t[5].value == 456);
+    assert_that(n_tokens == 7);
+    assert_that(t[0].type == OP_ADD);
+    assert_that(t[0].flags == (UNARY | ASSOC_L | PRECEDENCE_OP_ADD_UNARY));
+    assert_that(t[1].type == LITERAL);
+    assert_that(t[1].value == 1);
+    assert_that(t[2].type == OP_ADD);
+    assert_that(t[2].flags == (BINARY | ASSOC_L | PRECEDENCE_OP_ADD_BINARY));
+    assert_that(t[3].type == LITERAL);
+    assert_that(t[3].value == 23);
+    assert_that(t[4].type == OP_MUL);
+    assert_that(t[4].flags == (BINARY | ASSOC_L | PRECEDENCE_OP_MUL));
+    assert_that(t[5].type == OP_SUB);
+    assert_that(t[5].flags == (UNARY | ASSOC_L | PRECEDENCE_OP_SUB_UNARY));
+    assert_that(t[6].type == LITERAL);
+    assert_that(t[6].value == 456);
 
     free(t);
 }

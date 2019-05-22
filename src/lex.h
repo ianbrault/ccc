@@ -24,6 +24,12 @@ typedef enum {
 #define ASSOC_L 0
 #define ASSOC_R (1 << 6)
 
+#define PRECEDENCE_OP_ADD_UNARY  1
+#define PRECEDENCE_OP_SUB_UNARY  1
+#define PRECEDENCE_OP_MUL        2
+#define PRECEDENCE_OP_ADD_BINARY 3
+#define PRECEDENCE_OP_SUB_BINARY 3
+
 typedef struct {
     token_type type;
     // flags are used for operator tokens, will be set to 0 for literals
@@ -36,7 +42,7 @@ typedef struct {
 } token_t;
 
 /*
- * get the next token struct from a string
+ * gets the next token struct from a string
  * @iparam start := start position of token
  * @oparam t := token struct to be created
  * @returns 0 on success, -1 if an invalid token was encountered
@@ -46,7 +52,7 @@ int next_token(const char** start, token_t* t);
 /*
  * splits an input string into tokens
  * @iparam input := input string
- * @oparam n_tokens := the number of tokens
+ * @oparam n_tokens := number of tokens
  * @returns an array of tokens
  */
 token_t* tokenize(const char* input, int* n_tokens);

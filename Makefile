@@ -10,31 +10,37 @@ base_dir   := $(shell pwd)
 src_dir    := $(base_dir)/src
 build_dir  := $(base_dir)/build
 test_dir   := $(base_dir)/test
-cgreen_dir := $(test_dir)/cgreen
-
-cgreen_inc := $(cgreen_dir)/include
-cgreen_lib := $(cgreen_dir)/lib
 
 _objs := main.o lex.o
 objs := $(patsubst %,$(build_dir)/%,$(_objs))
 
-.PHONY: clean test cgreen
+test_objs := $(build_dir)/test.o $(build_dir)/lex.o
 
-$(target): $(objs)
-	if [ ! -d $(build_dir) ]; then mkdir $(build_dir); fi
-	$(cc) -o $@ $^
+.PHONY: build cgreen clean test
+
+$(target): build $(objs)
+	$(cc) -o $@ $(objs)
 
 $(build_dir)/%.o: $(src_dir)/%.c
 	$(cc) -c -o $@ $< $(cflags)
 
-clean:
-	rm -rf $(target) build/*
-
-test: $(build_dir)/test.o $(src_dir)/lex.o
+build:
 	if [ ! -d $(build_dir) ]; then mkdir $(build_dir); fi
-	if [ ! -d $(cgreen_lib) ]; then cd $(build_dir) && cmake -DCMAKE_INSTALL_PREFIX=$(cgreen_dir) $(cgreen_dir) && make && make install && cd $(base_dir); fi
-	$(cc) -o $(test_target) $^ -L$(cgreen_lib) -lcgreen
+
+clean:
+	rm -rf $(target) $(test_target) build/* $(test_dir)/*.dylib
+
+cgreen:
+	if [ ! -e $(test_dir)/libcgreen.dylib ]; then \
+		cgreen_tmp=$(shell mktemp -d $(test_dir)/cgreen.XXXXXX); \
+		git clone https://github.com/cgreen-devs/cgreen $$cgreen_tmp; \
+		cd $(build_dir) && cmake -DCMAKE_INSTALL_PREFIX=$$cgreen_tmp $$cgreen_tmp && make && make install && cd $(base_dir); \
+		cp $$cgreen_tmp/lib/libcgreen*.dylib $$cgreen_tmp/include/cgreen/cgreen.h $(test_dir) && rm -rf $$cgreen_tmp; \
+	fi;
+
+test: build cgreen $(test_objs)
+	$(cc) -o $(test_target) $(test_objs) -L$(test_dir) -lcgreen
 	$(base_dir)/$(test_target)
 
 $(build_dir)/test.o: $(test_dir)/test.c
-	$(cc) -c -o $@ $< -I$(cgreen_inc) -I$(src_dir)
+	$(cc) -c -o $@ $< -I$(test_dir) -I$(src_dir)

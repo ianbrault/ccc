@@ -6,8 +6,7 @@
 
 #include <limits.h>
 
-#include <cgreen/cgreen.h>
-
+#include "cgreen.h"
 #include "lex.h"
 
 Ensure(test_tokenize_valid)

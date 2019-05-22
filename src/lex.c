@@ -6,6 +6,7 @@
  */
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdlib.h>
 
 #include "lex.h"
@@ -81,7 +82,7 @@ token_t* tokenize(const char* input, int* n_tokens)
         {
             // unexpected token found, return position as error condition
             int pos = start - input;
-            *n_tokens = pos | (1 << 31);
+            *n_tokens = pos | INT_MIN;
             return NULL;
         }
 

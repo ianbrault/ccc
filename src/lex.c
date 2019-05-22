@@ -14,18 +14,15 @@ int next_token(const char** start, token_t* t)
 {
     int rc = 0;
 
-    while (isspace(**start))
-        (*start)++;
-
     char c = **start;
     if (c == '+')
     {
-        *t = (token_t) { OP_ADD, BINARY | ASSOC_L | 3, 0 };
+        *t = (token_t) { OP_ADD, BINARY | ASSOC_L | 1, 0 };
         (*start)++;
     }
     else if (c == '-')
     {
-        *t = (token_t) { OP_SUB, BINARY | ASSOC_L | 3, 0 };
+        *t = (token_t) { OP_SUB, BINARY | ASSOC_L | 1, 0 };
         (*start)++;
     }
     else if (c == '*')
@@ -52,6 +49,9 @@ int next_token(const char** start, token_t* t)
         rc = -1;
     }
 
+    while (isspace(**start))
+        (*start)++;
+
     return rc;
 }
 
@@ -69,6 +69,10 @@ token_t* tokenize(const char* input, int* n_tokens)
 
     int rc;
     const char* start = input;
+    // find first non-whitespace character
+    while (isspace(*start))
+        start++;
+
     *n_tokens = 0;
     while (*start != 0)
     {

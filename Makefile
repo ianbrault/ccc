@@ -30,13 +30,11 @@ $(build_dir)/%.o: $(src_dir)/%.c
 clean:
 	rm -rf $(target) build/*
 
-test: cgreen $(build_dir)/test.o
-	$(cc) -o $(test_target) $(build_dir)/test.o -L$(cgreen_lib) -lcgreen
+test: $(build_dir)/test.o $(src_dir)/lex.o
+	if [ ! -d $(build_dir) ]; then mkdir $(build_dir); fi
+	if [ ! -d $(cgreen_lib) ]; then cd $(build_dir) && cmake -DCMAKE_INSTALL_PREFIX=$(cgreen_dir) $(cgreen_dir) && make && make install && cd $(base_dir); fi
+	$(cc) -o $(test_target) $^ -L$(cgreen_lib) -lcgreen
 	$(base_dir)/$(test_target)
 
 $(build_dir)/test.o: $(test_dir)/test.c
-	$(cc) -c -o $@ $< -I$(cgreen_inc)
-
-cgreen:
-	if [ ! -d $(build_dir) ]; then mkdir $(build_dir); fi
-	if [ ! -d $(cgreen_lib) ]; then cd $(build_dir) && cmake -DCMAKE_INSTALL_PREFIX=$(cgreen_dir) $(cgreen_dir) && make && make install && cd $(base_dir); fi
+	$(cc) -c -o $@ $< -I$(cgreen_inc) -I$(src_dir)

@@ -32,7 +32,7 @@ clean:
 
 cgreen:
 	if [ ! -e $(test_dir)/libcgreen.dylib ]; then \
-		cgreen_tmp=$(shell mktemp -d $(test_dir)/cgreen.XXXXXX); \
+		cgreen_tmp=$$(mktemp -d $(test_dir)/cgreen.XXXXXX); \
 		git clone https://github.com/cgreen-devs/cgreen $$cgreen_tmp; \
 		cd $(build_dir) && cmake -DCMAKE_INSTALL_PREFIX=$$cgreen_tmp $$cgreen_tmp && make && make install && cd $(base_dir); \
 		cp $$cgreen_tmp/lib/libcgreen*.dylib $$cgreen_tmp/include/cgreen/cgreen.h $(test_dir) && rm -rf $$cgreen_tmp; \

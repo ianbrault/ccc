@@ -43,5 +43,6 @@ int main(int argc, char* argv[])
 
     printf("lexed input, found %d tokens\n", n_tokens);
 
+    free(tokens);
     return EXIT_SUCCESS;
 }

@@ -8,7 +8,6 @@
 #ifndef LEX_H
 #define LEX_H
 
-#include <stddef.h>
 #include <stdint.h>
 
 typedef enum {
@@ -39,6 +38,8 @@ typedef struct {
     uint8_t flags;
     // value of literals
     int32_t value;
+    // offset from start of input string, used for error messages
+    int32_t offset;
 } token_t;
 
 /*
@@ -52,7 +53,7 @@ int next_token(const char** start, token_t* t);
 /*
  * splits an input string into tokens
  * @iparam input := input string
- * @oparam n_tokens := number of tokens
+ * @oparam n_tokens := length of tokens array
  * @returns an array of tokens
  */
 token_t* tokenize(const char* input, int* n_tokens);

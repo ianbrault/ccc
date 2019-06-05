@@ -8,3 +8,4 @@ test/cgreen.*
 test/*.dylib
 
 .clang_complete
+*.swp

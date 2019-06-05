@@ -19,18 +19,25 @@ Ensure(test_tokenize_valid)
     assert_that(n_tokens == 7);
     assert_that(t[0].type == OP_ADD);
     assert_that(t[0].flags == (UNARY | ASSOC_L | PRECEDENCE_OP_ADD_UNARY));
+    assert_that(t[0].offset == 2);
     assert_that(t[1].type == LITERAL);
     assert_that(t[1].value == 1);
+    assert_that(t[1].offset == 3);
     assert_that(t[2].type == OP_ADD);
     assert_that(t[2].flags == (BINARY | ASSOC_L | PRECEDENCE_OP_ADD_BINARY));
+    assert_that(t[2].offset == 4);
     assert_that(t[3].type == LITERAL);
     assert_that(t[3].value == 23);
+    assert_that(t[3].offset == 7);
     assert_that(t[4].type == OP_MUL);
     assert_that(t[4].flags == (BINARY | ASSOC_L | PRECEDENCE_OP_MUL));
+    assert_that(t[4].offset == 10);
     assert_that(t[5].type == OP_SUB);
     assert_that(t[5].flags == (UNARY | ASSOC_L | PRECEDENCE_OP_SUB_UNARY));
+    assert_that(t[5].offset == 12);
     assert_that(t[6].type == LITERAL);
     assert_that(t[6].value == 456);
+    assert_that(t[6].offset == 13);
 
     free(t);
 }

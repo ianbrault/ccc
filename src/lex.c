@@ -11,49 +11,54 @@
 
 #include "lex.h"
 
-int next_token(const char** start, token_t* t)
+static const char* next_token_numeric(const char* start, token_t* t)
 {
-    int rc = 0;
+    char* num_end;
 
-    char c = **start;
-    if (c == '+')
+    int val = strtol(start, &num_end, 10);
+    if (num_end != NULL)
+    {
+        *t = (token_t) { LITERAL, 0, val, 0 };
+    }
+
+    return num_end;
+}
+
+static const char* next_token(const char* start, token_t* t)
+{
+    const char* end;
+
+    char c = *start;
+    if (isdigit(c))
+    {
+        end = next_token_numeric(start, t);
+    }
+    else if (c == '+')
     {
         *t = (token_t) { OP_ADD, BINARY | ASSOC_L | PRECEDENCE_OP_ADD_BINARY, 0, 0 };
-        (*start)++;
+        end = start + 1;
     }
     else if (c == '-')
     {
         *t = (token_t) { OP_SUB, BINARY | ASSOC_L | PRECEDENCE_OP_SUB_BINARY, 0, 0 };
-        (*start)++;
+        end = start + 1;
     }
     else if (c == '*')
     {
         *t = (token_t) { OP_MUL, BINARY | ASSOC_L | PRECEDENCE_OP_MUL, 0, 0 };
-        (*start)++;
-    }
-    else if (isdigit(c))
-    {
-        char* num_end;
-        int val = strtol(*start, &num_end, 10);
-        if (num_end != NULL)
-        {
-            *t = (token_t) { LITERAL, 0, val, 0 };
-            *start = num_end;
-        }
-        else
-        {
-            rc = -1;
-        }
+        end = start + 1;
     }
     else
     {
-        rc = -1;
+        end = NULL;
     }
 
-    while (isspace(**start))
-        (*start)++;
+    while (end != NULL && isspace(*end))
+    {
+        end++;
+    }
 
-    return rc;
+    return end;
 }
 
 static int is_operator(token_type type)
@@ -69,7 +74,9 @@ static void parse_unary_operators(token_t* tokens, int n_tokens)
         if (tokens[i].type == OP_ADD || tokens[i].type == OP_SUB)
         {
             if (i == 0 || (i > 0 && is_operator(tokens[i - 1].type)))
+            {
                 tokens[i].flags = UNARY | ASSOC_L | PRECEDENCE_OP_ADD_UNARY;
+            }
         }
     }
 }
@@ -81,35 +88,41 @@ static unsigned resize(token_t** tokens, unsigned size)
     return new_size;
 }
 
-token_t* tokenize(const char* input, int* n_tokens)
+int tokenize(const char* input, token_t** tokens)
 {
+    int n_tokens = 0;
+
     int size = 16;
-    token_t* tokens = malloc(size * sizeof(token_t));
+    *tokens = malloc(size * sizeof(token_t));
 
     const char* start = input;
     // find first non-whitespace character
     while (isspace(*start))
+    {
         start++;
+    }
 
-    *n_tokens = 0;
     while (*start != 0)
     {
         int offset = start - input;
-        int rc = next_token(&start, &tokens[*n_tokens]);
-        if (rc < 0)
+        start = next_token(start, &(*tokens)[n_tokens]);
+        // next_token error
+        if (start == NULL)
         {
             // unexpected token found, return position as error condition
-            int pos = start - input;
-            *n_tokens = pos | INT_MIN;
-            return NULL;
+            n_tokens = offset | INT_MIN;
+            free(*tokens);
+            return n_tokens;
         }
 
-        tokens[*n_tokens].offset = offset;
-        if (++(*n_tokens) == size)
-            size = resize(&tokens, size);
+        (*tokens)[n_tokens].offset = offset;
+        if (++n_tokens == size)
+        {
+            size = resize(tokens, size);
+        }
     }
 
-    parse_unary_operators(tokens, *n_tokens);
+    parse_unary_operators(*tokens, n_tokens);
 
-    return tokens;
+    return n_tokens;
 }

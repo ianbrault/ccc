@@ -32,8 +32,8 @@ int main(int argc, char* argv[])
 
     const char* input = argv[1];
 
-    int n_tokens;
-    token_t* tokens = tokenize(input, &n_tokens);
+    token_t* tokens;
+    int n_tokens = tokenize(input, &tokens);
     if (tokens == NULL)
     {
         int pos = n_tokens & (~INT_MIN);

@@ -43,19 +43,11 @@ typedef struct {
 } token_t;
 
 /*
- * gets the next token struct from a string
- * @iparam start := start position of token
- * @oparam t := token struct to be created
- * @returns 0 on success, -1 if an invalid token was encountered
- */
-int next_token(const char** start, token_t* t);
-
-/*
  * splits an input string into tokens
  * @iparam input := input string
- * @oparam n_tokens := length of tokens array
- * @returns an array of tokens
+ * @oparam tokens := array of tokens
+ * @returns the length of the token array
  */
-token_t* tokenize(const char* input, int* n_tokens);
+int tokenize(const char* input, token_t** tokens);
 
 #endif

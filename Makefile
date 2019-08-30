@@ -1,7 +1,7 @@
 # Makefile
 
 cc := gcc
-cflags := -std=c11 -fPIE -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align -Wstrict-prototypes
+cflags := -std=c11 -Isrc -fPIE -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align -Wstrict-prototypes
 
 target := ccc
 test_target := ccc_test
@@ -35,7 +35,7 @@ cgreen:
 		cgreen_tmp=$$(mktemp -d $(test_dir)/cgreen.XXXXXX); \
 		git clone https://github.com/cgreen-devs/cgreen $$cgreen_tmp; \
 		cd $(build_dir) && cmake -DCMAKE_INSTALL_PREFIX=$$cgreen_tmp $$cgreen_tmp && make && make install && cd $(base_dir); \
-		cp $$cgreen_tmp/lib/libcgreen*.dylib $$cgreen_tmp/include/cgreen/cgreen.h $(test_dir) && rm -rf $$cgreen_tmp; \
+		cp $$cgreen_tmp/lib/libcgreen*.dylib $$cgreen_tmp/include/cgreen/ $(test_dir) && rm -rf $$cgreen_tmp; \
 	fi;
 
 test: build cgreen $(test_objs)

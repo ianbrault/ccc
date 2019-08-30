@@ -6,35 +6,40 @@
 
 #include <limits.h>
 
-#include "cgreen.h"
-#include "lex.h"
+#include <cgreen/cgreen.h>
+#include <lex.h>
+
+/*** lex.h unit tests ***/
 
 Ensure(test_tokenize_valid)
 {
-    token_t* t;
     const char* input = "  +1+  23 * -456";
-    int n_tokens = tokenize(input, &t);
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
 
     assert_that(t != NULL);
     assert_that(n_tokens == 7);
+
     assert_that(t[0].type == OP_ADD);
-    assert_that(t[0].flags == (UNARY | ASSOC_L | PRECEDENCE_OP_ADD_UNARY));
     assert_that(t[0].offset == 2);
+
     assert_that(t[1].type == LITERAL);
     assert_that(t[1].value == 1);
     assert_that(t[1].offset == 3);
+
     assert_that(t[2].type == OP_ADD);
-    assert_that(t[2].flags == (BINARY | ASSOC_L | PRECEDENCE_OP_ADD_BINARY));
     assert_that(t[2].offset == 4);
+
     assert_that(t[3].type == LITERAL);
     assert_that(t[3].value == 23);
     assert_that(t[3].offset == 7);
+
     assert_that(t[4].type == OP_MUL);
-    assert_that(t[4].flags == (BINARY | ASSOC_L | PRECEDENCE_OP_MUL));
     assert_that(t[4].offset == 10);
+
     assert_that(t[5].type == OP_SUB);
-    assert_that(t[5].flags == (UNARY | ASSOC_L | PRECEDENCE_OP_SUB_UNARY));
     assert_that(t[5].offset == 12);
+
     assert_that(t[6].type == LITERAL);
     assert_that(t[6].value == 456);
     assert_that(t[6].offset == 13);
@@ -44,37 +49,42 @@ Ensure(test_tokenize_valid)
 
 Ensure(test_tokenize_valid_invalid_syntax)
 {
-    token_t* t;
     const char* input = " * * 123 0  ";
-    int n_tokens = tokenize(input, &t);
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
 
     assert_that(t != NULL);
     assert_that(n_tokens == 4);
+
     assert_that(t[0].type == OP_MUL);
     assert_that(t[1].type == OP_MUL);
     assert_that(t[2].type == LITERAL);
+    assert_that(t[2].value == 123);
     assert_that(t[3].type == LITERAL);
+    assert_that(t[4].value == 0);
 
     free(t);
 }
 
 Ensure(test_tokenize_invalid)
 {
-    token_t* t;
     const char* input = "  32 * abc";
-    int n_tokens = tokenize(input, &t);
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
 
     assert_that(t == NULL);
-    assert_that(n_tokens == (7 | INT_MIN));
+    assert_that(n_tokens == (E_INVALID_TOKEN | 7));
 }
+
+/*** run test suite ***/
 
 int main(int argc, char **argv)
 {
     TestSuite *suite = create_test_suite();
 
     add_test(suite, test_tokenize_valid);
-    // add_test(suite, test_tokenize_valid_invalid_syntax);
-    // add_test(suite, test_tokenize_invalid);
+    add_test(suite, test_tokenize_valid_invalid_syntax);
+    add_test(suite, test_tokenize_invalid);
 
     return run_test_suite(suite, create_text_reporter());
 }

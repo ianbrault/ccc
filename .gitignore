@@ -4,7 +4,7 @@ ccc_test
 *.o
 build
 
-test/cgreen.*
+test/cgreen
 test/*.dylib
 
 .clang_complete

@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#include <error.h>
 #include <lex.h>
 
 /*

@@ -51,12 +51,6 @@ typedef struct {
 // implement to use a resizing scheme later on
 #define MAX_TOKENS (UINT8_MAX)
 
-// invalid token encountered
-// lower 30 bits will contain the offset
-#define E_INVALID_TOKEN (INT32_MIN | (0x1 << 30))
-// if MAX_TOKENS is exceeded
-#define E_MAX_TOKENS (INT32_MIN | 0x1)
-
 /*
  * splits an input string into tokens
  * @iparam input := input string

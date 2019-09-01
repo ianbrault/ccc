@@ -11,7 +11,7 @@ src_dir    := $(base_dir)/src
 build_dir  := $(base_dir)/build
 test_dir   := $(base_dir)/test
 
-_objs := main.o lex.o
+_objs := main.o error.o lex.o
 objs := $(patsubst %,$(build_dir)/%,$(_objs))
 
 test_objs := $(build_dir)/test.o $(build_dir)/lex.o

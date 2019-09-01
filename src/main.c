@@ -5,22 +5,11 @@
  */
 
 #include <limits.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <error.h>
 #include <lex.h>
-
-void eprintf(const char* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-
-    fprintf(stderr, "\033[0;31merror:\033[0m ");
-    vfprintf(stderr, format, args);
-
-    va_end(args);
-}
 
 int main(int argc, char* argv[])
 {
@@ -32,16 +21,14 @@ int main(int argc, char* argv[])
 
     const char* input = argv[1];
 
-    token_t* tokens;
-    int n_tokens = tokenize(input, &tokens);
-    if (tokens == NULL)
+    // lex input string into tokens
+    int32_t n_tokens;
+    token_t* tokens = tokenize(input, &n_tokens);
+    if (!tokens)
     {
-        int pos = n_tokens & (~INT_MIN);
-        eprintf("unexpected token at position %d: %c\n", pos, input[pos]);
+        print_err(n_tokens);
         return EXIT_FAILURE;
     }
-
-    printf("lexed input, found %d tokens\n", n_tokens);
 
     free(tokens);
     return EXIT_SUCCESS;

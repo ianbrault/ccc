@@ -18,8 +18,10 @@
  *
  * @iparam tokens := array of tokens in infix notation
  * @iparam n_tokens := length of tokens array
- * @returns array of tokens in Reverse Polish notation
+ * @oparam n_rpn := length of the returned array, shunting-yard removes the
+ *                  parentheses so this will likely be different from n_tokens
+ * @returns an array of tokens in Reverse Polish notation
  */
-token_t* shunting_yard(token_t* tokens, int n_tokens);
+token_t* shunting_yard(token_t* tokens, int n_tokens, int* n_rpn);
 
 #endif

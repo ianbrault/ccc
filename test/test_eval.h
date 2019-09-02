@@ -5,8 +5,10 @@
 
 #include <cgreen/cgreen.h>
 
+#include <error.h>
 #include <eval.h>
 #include <lex.h>
+#include <utils.h>
 
 Ensure(test_shunting_yard_basic)
 {
@@ -16,14 +18,46 @@ Ensure(test_shunting_yard_basic)
     assert_that(t != NULL);
     assert_that(n_tokens == 5);
 
-    token_t* rpn = shunting_yard(t, n_tokens);
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
     assert_that(rpn != NULL);
+    assert_that(n_rpn == 5);
     // RPN should be: 1 2 3 * +
-    assert_that(rpn[0].type == LITERAL && rpn[0].value == 1);
-    assert_that(rpn[1].type == LITERAL && rpn[1].value == 2);
-    assert_that(rpn[2].type == LITERAL && rpn[2].value == 3);
-    assert_that(rpn[3].type == OP_MUL);
-    assert_that(rpn[4].type == OP_ADD);
+    assert_that(token_is_literal(rpn[0], 1));
+    assert_that(token_is_literal(rpn[1], 2));
+    assert_that(token_is_literal(rpn[2], 3));
+    assert_that(token_is_op(rpn[3], OP_MUL));
+    assert_that(token_is_op(rpn[4], OP_ADD));
+
+    free(t);
+}
+
+Ensure(test_shunting_yard_parens)
+{
+    const char* input = "3 * (4 + 2) - ((1 - 5) * 3)";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+    assert_that(n_tokens == 17);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn != NULL);
+    assert_that(n_rpn == 11);
+    // RPN should be: 3 4 2 + * 1 5 - 3 * -
+    assert_that(token_is_literal(rpn[0], 3));
+    assert_that(token_is_literal(rpn[1], 4));
+    assert_that(token_is_literal(rpn[2], 2));
+    assert_that(token_is_op(rpn[3], OP_ADD));
+    assert_that(token_is_op(rpn[4], OP_MUL));
+    assert_that(token_is_literal(rpn[5], 1));
+    assert_that(token_is_literal(rpn[6], 5));
+    assert_that(token_is_op(rpn[7], OP_SUB));
+    assert_that(token_is_literal(rpn[8], 3));
+    assert_that(token_is_op(rpn[9], OP_MUL));
+    assert_that(token_is_op(rpn[10], OP_SUB));
+
+    free(t);
 }
 
 Ensure(test_shunting_yard_addition_chain)
@@ -34,38 +68,48 @@ Ensure(test_shunting_yard_addition_chain)
     assert_that(t != NULL);
     assert_that(n_tokens == 9);
 
-    token_t* rpn = shunting_yard(t, n_tokens);
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
     assert_that(rpn != NULL);
+    assert_that(n_rpn == 9);
     // RPN should be: 0 1 + 2 + 3 + 4 +
-    assert_that(rpn[0].type == LITERAL && rpn[0].value == 0);
-    assert_that(rpn[1].type == LITERAL && rpn[1].value == 1);
-    assert_that(rpn[2].type == OP_ADD);
-    assert_that(rpn[3].type == LITERAL && rpn[3].value == 2);
-    assert_that(rpn[4].type == OP_ADD);
-    assert_that(rpn[5].type == LITERAL && rpn[5].value == 3);
-    assert_that(rpn[6].type == OP_ADD);
-    assert_that(rpn[7].type == LITERAL && rpn[7].value == 4);
-    assert_that(rpn[8].type == OP_ADD);
+    assert_that(token_is_literal(rpn[0], 0));
+    assert_that(token_is_literal(rpn[1], 1));
+    assert_that(token_is_op(rpn[2], OP_ADD));
+    assert_that(token_is_literal(rpn[3], 2));
+    assert_that(token_is_op(rpn[4], OP_ADD));
+    assert_that(token_is_literal(rpn[5], 3));
+    assert_that(token_is_op(rpn[6], OP_ADD));
+    assert_that(token_is_literal(rpn[7], 4));
+    assert_that(token_is_op(rpn[8], OP_ADD));
+
+    free(t);
 }
 
-Ensure(test_shunting_yard_only_numbers)
+Ensure(test_shunting_yard_unmatched_lparen)
 {
-    // numbers should appear in output stack in the same order
-    const char* input = "1 2 3 4 5 6";
+    const char* input = "(1 + 2) - ((3 + 4) + 5";
     int32_t n_tokens;
     token_t* t = tokenize(input, &n_tokens);
     assert_that(t != NULL);
-    assert_that(n_tokens == 6);
+    assert_that(n_tokens == 14);
 
-    token_t* rpn = shunting_yard(t, n_tokens);
-    assert_that(rpn != NULL);
-    for (int i = 0; i < n_tokens; i++)
-    {
-        assert_that(t[i].type == rpn[i].type);
-        assert_that(t[i].value == rpn[i].value);
-        assert_that(t[i].offset == rpn[i].offset);
-    }
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn == NULL);
+    assert_that(n_rpn == (E_UNMATCHED_PAREN | 10));
+}
 
-    free(t);
-    free(rpn);
+Ensure(test_shunting_yard_unmatched_rparen)
+{
+    const char* input = "(1 + 2)) - 5";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+    assert_that(n_tokens == 8);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn == NULL);
+    assert_that(n_rpn == (E_UNMATCHED_PAREN | 7));
 }

@@ -13,6 +13,8 @@
 typedef enum {
     INVALID,
     LITERAL,
+    L_PAREN,
+    R_PAREN,
     OP_ADD,
     OP_SUB,
     OP_MUL,
@@ -24,12 +26,16 @@ typedef enum {
 static uint8_t precedence[N_TOKEN_TYPES] = {
     [INVALID] = 0,
     [LITERAL] = 0,
+    [L_PAREN] = 1,
+    [R_PAREN] = 1,
     [OP_ADD]  = 4,
     [OP_SUB]  = 4,
     [OP_MUL]  = 3,
 };
 
 #define PREC(token) precedence[token.type]
+#define PREC_GT(token1, token2) PREC(token1) < PREC(token2)
+#define PREC_EQ(token1, token2) PREC(token1) == PREC(token2)
 
 #define ASSOC_L 1
 #define ASSOC_R 2
@@ -38,6 +44,8 @@ static uint8_t precedence[N_TOKEN_TYPES] = {
 static uint8_t associativity[N_TOKEN_TYPES] = {
     [INVALID] = 0,
     [LITERAL] = 0,
+    [L_PAREN] = 0,
+    [R_PAREN] = 0,
     [OP_ADD]  = ASSOC_L,
     [OP_SUB]  = ASSOC_L,
     [OP_MUL]  = ASSOC_L,

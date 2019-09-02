@@ -19,8 +19,10 @@ int main(int argc, char **argv)
 
     // test_eval.h
     add_test(suite, test_shunting_yard_basic);
+    add_test(suite, test_shunting_yard_parens);
     add_test(suite, test_shunting_yard_addition_chain);
-    add_test(suite, test_shunting_yard_only_numbers);
+    add_test(suite, test_shunting_yard_unmatched_lparen);
+    add_test(suite, test_shunting_yard_unmatched_rparen);
 
     return run_test_suite(suite, create_text_reporter());
 }

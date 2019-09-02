@@ -38,6 +38,12 @@ static token_type get_operator_type(const char* c)
     token_type type;
     switch (*c)
     {
+    case '(':
+        type = L_PAREN;
+        break;
+    case ')':
+        type = R_PAREN;
+        break;
     case '+':
         type = OP_ADD;
         break;
@@ -110,6 +116,7 @@ token_t* tokenize(const char* input, int32_t* n_tokens)
         int32_t offset = it - input;
 
         // attempt to get an operator type
+        // note that parentheses are treated as operators here
         token_type type = get_operator_type(it);
         if (type != INVALID)
         {

@@ -14,10 +14,16 @@
 // LEX_H
 
 // invalid token encountered
-// lower 30 bits will contain the offset
+// lower 16 bits will contain the offset
 #define E_INVALID_TOKEN (INT32_MIN | (0x1 << 30))
 // if MAX_TOKENS is exceeded
 #define E_MAX_TOKENS (INT32_MIN | 0x1)
+
+// EVAL_H
+
+// unmatched parenthesis
+// lower 16 bits will contain the offset
+#define E_UNMATCHED_PAREN (INT32_MIN | (0x1 << 29))
 
 /*
  * print an error message with a red "error:" prepended

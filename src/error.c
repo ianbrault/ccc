@@ -23,15 +23,22 @@ void eprintf(const char* format, ...)
 
 static int32_t e_invalid_token_flag = 0x1 << 30;
 static int32_t e_max_tokens_flag = 0x1;
+static int32_t e_unmatched_paren_flag = 0x1 << 29;
 
 void print_err(int errno)
 {
     // NOTE: E_INVALID_TOKEN must be checked first
-    // lower 30 bits contain offset info which could falsely flag other errors
+    // lower 16 bits contain offset info which could falsely flag other errors
     if (errno & e_invalid_token_flag)
     {
-        int32_t pos = errno & ~(0x3 << 30);
+        int32_t pos = errno & 0xffff;
         eprintf("invalid token at position %d\n", pos);
+    }
+    // NOTE: for the same reason as above, check E_UNMATCHED_PAREN next
+    else if (errno & e_unmatched_paren_flag)
+    {
+        int32_t pos = errno & 0xffff;
+        eprintf("could not match the parenthesis at position %d\n", pos);
     }
     else if (errno & e_max_tokens_flag)
     {

@@ -21,7 +21,7 @@ typedef enum {
 
 // precedence of operators, taken from "C Operator Precedence"
 // https://en.cppreference.com/w/c/language/operator_precedence
-static uint8_t prec[N_TOKEN_TYPES] = {
+static uint8_t precedence[N_TOKEN_TYPES] = {
     [INVALID] = 0,
     [LITERAL] = 0,
     [OP_ADD]  = 4,
@@ -29,17 +29,21 @@ static uint8_t prec[N_TOKEN_TYPES] = {
     [OP_MUL]  = 3,
 };
 
+#define PREC(token) precedence[token.type]
+
 #define ASSOC_L 1
 #define ASSOC_R 2
 
 // associativity of operators
-static uint8_t assoc[N_TOKEN_TYPES] = {
+static uint8_t associativity[N_TOKEN_TYPES] = {
     [INVALID] = 0,
     [LITERAL] = 0,
     [OP_ADD]  = ASSOC_L,
     [OP_SUB]  = ASSOC_L,
     [OP_MUL]  = ASSOC_L,
 };
+
+#define ASSOC(token) associativity[token.type]
 
 typedef struct {
     token_type type;
@@ -52,7 +56,14 @@ typedef struct {
 #define MAX_TOKENS (UINT8_MAX)
 
 /*
+ * returns a boolean to indicate whether the token type is an operator
+ * operators are all types prefixed by OP_
+ */
+uint8_t is_operator(token_type type);
+
+/*
  * splits an input string into tokens
+ *
  * @iparam input := input string
  * @oparam n_tokens := length of the returned array
  * @returns an array of tokens

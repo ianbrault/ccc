@@ -11,6 +11,11 @@
 #include <error.h>
 #include <lex.h>
 
+uint8_t is_operator(token_type type)
+{
+    return (type == OP_ADD) || (type == OP_SUB) || (type == OP_MUL);
+}
+
 /*
  * skip all leading/trailing whitespace
  */

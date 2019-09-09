@@ -31,4 +31,4 @@ $ ccc
 
 ## Changelog
 
-**0.1.0:** initial release
+**[0.1.0](https://github.com/ianbrault/ccc/releases/tag/v0.1.0):** initial release

@@ -12,22 +12,22 @@
 #define STACK_PUSH(stack, count, item) stack[count++] = item
 #define STACK_POP(stack, count) stack[--count]
 
-int op_add_impl(token_t* op1, token_t* op2, token_t* res);
-int op_sub_impl(token_t* op1, token_t* op2, token_t* res);
-int op_mul_impl(token_t* op1, token_t* op2, token_t* res);
+void op_add_impl(token_t* op1, token_t* op2, token_t* res);
+void op_sub_impl(token_t* op1, token_t* op2, token_t* res);
+void op_mul_impl(token_t* op1, token_t* op2, token_t* res);
 
-int op_pos_impl(token_t* op, token_t* res);
-int op_neg_impl(token_t* op, token_t* res);
+void op_pos_impl(token_t* op, token_t* res);
+void op_neg_impl(token_t* op, token_t* res);
 
 // applies a binary operator to its operands
-static int (*ops_binary[N_BINARY_OPS])(token_t*, token_t*, token_t*) = {
+static void (*ops_binary[N_BINARY_OPS])(token_t*, token_t*, token_t*) = {
     [OP_ADD - OP_ADD] = &op_add_impl,
     [OP_SUB - OP_ADD] = &op_sub_impl,
     [OP_MUL - OP_ADD] = &op_mul_impl,
 };
 
 // applies a unary operator to its operand
-static int (*ops_unary[N_UNARY_OPS])(token_t*, token_t*) = {
+static void (*ops_unary[N_UNARY_OPS])(token_t*, token_t*) = {
     [OP_POS - OP_POS] = &op_pos_impl,
     [OP_NEG - OP_POS] = &op_neg_impl,
 };

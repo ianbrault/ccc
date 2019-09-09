@@ -23,10 +23,15 @@ int main(int argc, char **argv)
     add_test(suite, test_shunting_yard_addition_chain);
     add_test(suite, test_shunting_yard_unmatched_lparen);
     add_test(suite, test_shunting_yard_unmatched_rparen);
+    add_test(suite, test_shunting_yard_op_missing_lhs);
+    add_test(suite, test_shunting_yard_op_missing_rhs);
+    add_test(suite, test_shunting_yard_successive_literals);
+    add_test(suite, test_shunting_yard_literal_paren);
     add_test(suite, test_eval_add);
     add_test(suite, test_eval_sub);
     add_test(suite, test_eval_mul);
     add_test(suite, test_eval_negation);
+    add_test(suite, test_eval_invalid_binary_op);
 
     return run_test_suite(suite, create_text_reporter());
 }

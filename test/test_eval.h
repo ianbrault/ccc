@@ -16,7 +16,6 @@ Ensure(test_shunting_yard_basic)
     int32_t n_tokens;
     token_t* t = tokenize(input, &n_tokens);
     assert_that(t != NULL);
-    assert_that(n_tokens == 5);
 
     int32_t n_rpn;
     token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
@@ -38,7 +37,6 @@ Ensure(test_shunting_yard_parens)
     int32_t n_tokens;
     token_t* t = tokenize(input, &n_tokens);
     assert_that(t != NULL);
-    assert_that(n_tokens == 17);
 
     int32_t n_rpn;
     token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
@@ -66,7 +64,6 @@ Ensure(test_shunting_yard_addition_chain)
     int32_t n_tokens;
     token_t* t = tokenize(input, &n_tokens);
     assert_that(t != NULL);
-    assert_that(n_tokens == 9);
 
     int32_t n_rpn;
     token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
@@ -92,7 +89,6 @@ Ensure(test_shunting_yard_unmatched_lparen)
     int32_t n_tokens;
     token_t* t = tokenize(input, &n_tokens);
     assert_that(t != NULL);
-    assert_that(n_tokens == 14);
 
     int32_t n_rpn;
     token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
@@ -106,12 +102,63 @@ Ensure(test_shunting_yard_unmatched_rparen)
     int32_t n_tokens;
     token_t* t = tokenize(input, &n_tokens);
     assert_that(t != NULL);
-    assert_that(n_tokens == 8);
 
     int32_t n_rpn;
     token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
     assert_that(rpn == NULL);
     assert_that(n_rpn == (E_UNMATCHED_PAREN | 7));
+}
+
+Ensure(test_shunting_yard_op_missing_lhs)
+{
+    const char* input = "* 1 2";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn == NULL);
+    assert_that(n_rpn == (E_OP_MISSING_EXPR | 0));
+}
+
+Ensure(test_shunting_yard_op_missing_rhs)
+{
+    const char* input = "1 2 *";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn == NULL);
+    assert_that(n_rpn == (E_OP_MISSING_EXPR | (0x1 << 10) | 4));
+}
+
+Ensure(test_shunting_yard_successive_literals)
+{
+    const char* input = "1 2 * * 3";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn == NULL);
+    assert_that(n_rpn == (E_INVALID_LIT_EXPR | 0));
+}
+
+Ensure(test_shunting_yard_literal_paren)
+{
+    const char* input = "1(1)";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn == NULL);
+    assert_that(n_rpn == (E_INVALID_LIT_EXPR | 0));
 }
 
 Ensure(test_eval_add)
@@ -180,4 +227,20 @@ Ensure(test_eval_negation)
     int rc = evaluate_rpn(rpn, n_rpn, &res);
     assert_that(rc == 0);
     assert_that(token_is_literal(res, 0));
+}
+
+Ensure(test_eval_invalid_binary_op)
+{
+    const char* input = "1 * * 2";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn != NULL);
+
+    token_t res;
+    int rc = evaluate_rpn(rpn, n_rpn, &res);
+    assert_that(rc == (E_OP_MISSING_EXPR | (0x1 << 10) | 2));
 }

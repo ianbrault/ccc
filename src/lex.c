@@ -7,6 +7,7 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <error.h>
 #include <lex.h>
@@ -108,21 +109,30 @@ static void add_unary_pos_neg_ops(token_t** tokens, int32_t n_tokens)
 
     for (int i = 1; i < n_tokens; i++)
     {
-        token_type type = (*tokens)[i].type;
-        token_type prev_type = (*tokens)[i - 1].type;
-        // current token must be +/- and previous token must be a binary
-        // operator or a left parentheses
-        if ((type == OP_ADD || type == OP_SUB)
-            && ((IS_OPERATOR(prev_type) && ARITY((*tokens)[i - 1]) == 2)
-                || prev_type == L_PAREN))
+        token_t* tcurr = &(*tokens)[i];
+        token_t* tprev = &(*tokens)[i - 1];
+        token_t* tnext = i + 1 < n_tokens ? &(*tokens)[i + 1] : NULL;
+        // current token must be +/-
+        uint8_t cond1 = tcurr->type == OP_ADD || tcurr->type == OP_SUB;
+        // previous token must be a binary operator or a left parenthesis
+        uint8_t cond2 = ARITY(*tprev) == 2 || tprev->type == L_PAREN;
+        // next token must be a literal or a left parenthesis
+        uint8_t cond3 = tnext && (IS_LITERAL(*tnext) || tnext->type == L_PAREN);
+        if (cond1 && cond2 && cond3)
         {
-            (*tokens)[i].type = binary_to_unary(type);
+            tcurr->type = binary_to_unary(tcurr->type);
         }
     }
 }
 
 token_t* tokenize(const char* input, int32_t* n_tokens)
 {
+    if (strlen(input) >= MAX_INPUT_LEN)
+    {
+        *n_tokens = E_MAX_INPUT;
+        return NULL;
+    }
+
     token_t* tokens = malloc(MAX_TOKENS * sizeof(token_t));
     *n_tokens = 0;
     const char* it = input;

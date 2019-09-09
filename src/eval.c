@@ -9,62 +9,85 @@
 #include <error.h>
 #include <eval.h>
 
-int op_add_impl(token_t* op1, token_t* op2, token_t* res)
+void op_add_impl(token_t* op1, token_t* op2, token_t* res)
 {
-    // FIXME: check operand types
     int32_t out = op1->value + op2->value;
     init_literal(res, out, 0);
-    return 0;
 }
 
-int op_sub_impl(token_t* op1, token_t* op2, token_t* res)
+void op_sub_impl(token_t* op1, token_t* op2, token_t* res)
 {
-    // FIXME: check operand types
     int32_t out = op1->value - op2->value;
     init_literal(res, out, 0);
-    return 0;
 }
 
-int op_mul_impl(token_t* op1, token_t* op2, token_t* res)
+void op_mul_impl(token_t* op1, token_t* op2, token_t* res)
 {
-    // FIXME: check operand types
     int32_t out = op1->value * op2->value;
     init_literal(res, out, 0);
-    return 0;
 }
 
-int op_pos_impl(token_t* op, token_t* res)
+void op_pos_impl(token_t* op, token_t* res)
 {
-    // FIXME: check operand type
     init_literal(res, op->value, 0);
-    return 0;
 }
 
-int op_neg_impl(token_t* op, token_t* res)
+void op_neg_impl(token_t* op, token_t* res)
 {
-    // FIXME: check operand type
     int32_t out = op->value * (-1);
     init_literal(res, out, 0);
-    return 0;
 }
 
 token_t* shunting_yard(token_t* tokens, int n_tokens, int* n_rpn)
 {
     token_t* op_stack  = malloc(n_tokens * sizeof(token_t));
     token_t* out_stack  = malloc(n_tokens * sizeof(token_t));
-
     int n = 0, n_out = 0, n_op = 0;
+    int literal_was_prev = 0;
+
+    // an operator at the start must be unary and right-associative
+    if (IS_OPERATOR(tokens[0]))
+    {
+        if (ARITY(tokens[0]) != 1 || ASSOC(tokens[0]) != ASSOC_R)
+        {
+            n_out = E_OP_MISSING_EXPR | tokens[0].offset;
+            n = n_tokens;
+        }
+    }
+    // an operator at the end must be unary and left-associative
+    int end = n_tokens - 1;
+    if (!n && IS_OPERATOR(tokens[end]))
+    {
+        if (ARITY(tokens[end]) != 1 || ASSOC(tokens[end]) != ASSOC_L)
+        {
+            n_out = E_OP_MISSING_EXPR;
+            n_out |= (0x1 << 10) | tokens[end].offset;
+            n = n_tokens;
+        }
+    }
+
     // while there are still tokens to be read
     while (n < n_tokens)
     {
         // if token is a number, push to output stack
-        if (tokens[n].type == LITERAL)
+        if (IS_LITERAL(tokens[n]))
         {
-            STACK_PUSH(out_stack, n_out, tokens[n]);
+            // literal cannot follow another literal
+            if (literal_was_prev)
+            {
+                n_out = E_INVALID_LIT_EXPR | tokens[n - 1].offset;
+                n = n_tokens;
+            }
+            else
+            {
+                literal_was_prev = 1;
+                STACK_PUSH(out_stack, n_out, tokens[n]);
+            }
         }
         // if token is an operator
-        else if (IS_OPERATOR(tokens[n].type))
+        else if (IS_OPERATOR(tokens[n]))
         {
+            literal_was_prev = 0;
             // pop from operator stack - while top has greater precedence or
             // equal precedence & left-associative, and not left parentheses
             // - onto output stack
@@ -82,11 +105,22 @@ token_t* shunting_yard(token_t* tokens, int n_tokens, int* n_rpn)
         // if token is a left parentheses, push to operator stack
         else if (tokens[n].type == L_PAREN)
         {
-            STACK_PUSH(op_stack, n_op, tokens[n]);
+            // left parenthesis cannot follow another literal
+            if (literal_was_prev)
+            {
+                n_out = E_INVALID_LIT_EXPR | tokens[n - 1].offset;
+                n = n_tokens;
+            }
+            else
+            {
+                literal_was_prev = 0;
+                STACK_PUSH(op_stack, n_op, tokens[n]);
+            }
         }
         // if token is a right parentheses
         else if (tokens[n].type == R_PAREN)
         {
+            literal_was_prev = 0;
             // pop from the operator stack - while top is not a left
             // parentheses - onto output stack
             while (n_op && op_stack[n_op - 1].type != L_PAREN)
@@ -144,47 +178,34 @@ int evaluate_rpn(token_t* rpn, int n_rpn, token_t* res)
 
     for (int n = 0; n < n_rpn; n++)
     {
-        if (IS_OPERATOR(rpn[n].type))
+        if (IS_OPERATOR(rpn[n]))
         {
             // unary operator
             if (ARITY(rpn[n]) == 1)
             {
-                if (n_stack < 1)
-                {
-                    // FIXME
-                }
+                // conditions in lex.c:add_unary_pos_neg_ops are strong enough
+                // to ensure that there is an operand on the stack
                 token_t op = STACK_POP(stack, n_stack);
                 // evaluate result
-                rc = OP_UN(rpn[n])(&op, &stack[n_stack++]);
-                if (rc < 0)
-                {
-                    // error evaluating expression, terminate
-                    n = n_rpn;
-                }
+                OP_UN(rpn[n])(&op, &stack[n_stack++]);
             }
             // binary operator
             else if (ARITY(rpn[n]) == 2)
             {
+                // not enough operands on the stack
                 if (n_stack < 2)
                 {
-                    // FIXME
-                }
-                token_t op2 = STACK_POP(stack, n_stack);
-                token_t op1 = STACK_POP(stack, n_stack);
-                // evaluate result
-                rc = OP_BIN(rpn[n])(&op1, &op2, &stack[n_stack++]);
-                if (rc < 0)
-                {
-                    // error evaluating expression, terminate
+                    rc = E_OP_MISSING_EXPR | (0x1 << 10) | rpn[n].offset;
                     n = n_rpn;
                 }
+                else
+                {
+                    token_t op2 = STACK_POP(stack, n_stack);
+                    token_t op1 = STACK_POP(stack, n_stack);
+                    // evaluate result
+                    OP_BIN(rpn[n])(&op1, &op2, &stack[n_stack++]);
+                }
             }
-            // otherwise, invalid operator encountered
-            else
-            {
-                // FIXME
-            }
-
         }
         else
         {
@@ -193,15 +214,11 @@ int evaluate_rpn(token_t* rpn, int n_rpn, token_t* res)
         }
     }
 
-    if (rc < 0)
-    {
-        res = NULL;
-    }
-    else
+    if (!rc)
     {
         *res = STACK_POP(stack, n_stack);
     }
 
     free(stack);
-    return 0;
+    return rc;
 }

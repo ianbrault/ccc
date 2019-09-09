@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     token_t* tokens = tokenize(input, &n_tokens);
     if (!tokens)
     {
-        print_err(n_tokens);
+        print_err(n_tokens, tokens);
         return EXIT_FAILURE;
     }
 

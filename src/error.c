@@ -118,7 +118,7 @@ void print_err(int errno, token_t* tokens)
         // get token offset and index into tokens array
         int32_t pos = errno & 0x3ff;
         int32_t index = get_index_from_offset(tokens, pos);
-        const char lit_str[32];
+        char lit_str[32];
         snprintf(lit_str, 32, "%d", tokens[index].value);
         eprintf(
             "%d: %s must be followed by an operator or end of expression\n",

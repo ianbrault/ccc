@@ -1,3 +1,5 @@
 # ccc
 
-A **C**ommand-line **C** **C**alculator inspired by `bc`. Created mainly for practice writing a basic parser and interpreter.
+A **C**ommand-line **C** **C**alculator inspired by `bc`
+
+![](screens/ccc.png | width=200)

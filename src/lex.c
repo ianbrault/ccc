@@ -11,11 +11,6 @@
 #include <error.h>
 #include <lex.h>
 
-uint8_t is_operator(token_type type)
-{
-    return (type == OP_ADD) || (type == OP_SUB) || (type == OP_MUL);
-}
-
 /*
  * skip all leading/trailing whitespace
  */
@@ -82,20 +77,48 @@ static const char* get_literal(const char* c, int32_t* value)
     return it;
 }
 
-/*
- * initialize a token (not a literal) with a given type and offset
- */
-static void init_token(token_t* token, token_type type, int32_t offset)
+void init_token(token_t* token, token_type type, int32_t offset)
 {
     *token = (token_t) { .type=type, .value=0, .offset=offset };
 }
 
-/*
- * initialize a literal with a given value and offset
- */
-static void init_literal(token_t* token, int32_t value, int32_t offset)
+void init_literal(token_t* token, int32_t value, int32_t offset)
 {
     *token = (token_t) { .type=LITERAL, .value=value, .offset=offset };
+}
+
+static token_type binary_to_unary(token_type type)
+{
+    return type + N_BINARY_OPS;
+}
+
+// determine which + and - operators should be unary
+static void add_unary_pos_neg_ops(token_t** tokens, int32_t n_tokens)
+{
+    if (!n_tokens)
+    {
+        return;
+    }
+
+    // addition/subtraction operator at the start should be unary
+    if ((*tokens)[0].type == OP_ADD || (*tokens)[0].type == OP_SUB)
+    {
+        (*tokens)[0].type = binary_to_unary((*tokens)[0].type);
+    }
+
+    for (int i = 1; i < n_tokens; i++)
+    {
+        token_type type = (*tokens)[i].type;
+        token_type prev_type = (*tokens)[i - 1].type;
+        // current token must be +/- and previous token must be a binary
+        // operator or a left parentheses
+        if ((type == OP_ADD || type == OP_SUB)
+            && ((IS_OPERATOR(prev_type) && ARITY((*tokens)[i - 1]) == 2)
+                || prev_type == L_PAREN))
+        {
+            (*tokens)[i].type = binary_to_unary(type);
+        }
+    }
 }
 
 token_t* tokenize(const char* input, int32_t* n_tokens)
@@ -159,6 +182,11 @@ token_t* tokenize(const char* input, int32_t* n_tokens)
         free(tokens);
         tokens = NULL;
     }
+    else
+    {
+        add_unary_pos_neg_ops(&tokens, *n_tokens);
+    }
+
 
     return tokens;
 }

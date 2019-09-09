@@ -18,8 +18,30 @@ typedef enum {
     OP_ADD,
     OP_SUB,
     OP_MUL,
+    OP_POS,
+    OP_NEG,
     N_TOKEN_TYPES
 } token_type;
+
+#define N_BINARY_OPS 3
+#define N_UNARY_OPS  2
+
+#define IS_OPERATOR(type) (type >= OP_ADD && type <= OP_NEG)
+
+// arity of operators
+static uint8_t arity[N_TOKEN_TYPES] = {
+    [INVALID] = 0,
+    [LITERAL] = 0,
+    [L_PAREN] = 0,
+    [R_PAREN] = 0,
+    [OP_ADD]  = 2,
+    [OP_SUB]  = 2,
+    [OP_MUL]  = 2,
+    [OP_POS]  = 1,
+    [OP_NEG]  = 1,
+};
+
+#define ARITY(token) arity[token.type]
 
 // precedence of operators, taken from "C Operator Precedence"
 // https://en.cppreference.com/w/c/language/operator_precedence
@@ -31,6 +53,8 @@ static uint8_t precedence[N_TOKEN_TYPES] = {
     [OP_ADD]  = 4,
     [OP_SUB]  = 4,
     [OP_MUL]  = 3,
+    [OP_POS]  = 2,
+    [OP_NEG]  = 2,
 };
 
 #define PREC(token) precedence[token.type]
@@ -49,6 +73,8 @@ static uint8_t associativity[N_TOKEN_TYPES] = {
     [OP_ADD]  = ASSOC_L,
     [OP_SUB]  = ASSOC_L,
     [OP_MUL]  = ASSOC_L,
+    [OP_POS]  = ASSOC_R,
+    [OP_NEG]  = ASSOC_R,
 };
 
 #define ASSOC(token) associativity[token.type]
@@ -64,10 +90,22 @@ typedef struct {
 #define MAX_TOKENS (UINT8_MAX)
 
 /*
- * returns a boolean to indicate whether the token type is an operator
- * operators are all types prefixed by OP_
+ * initialize a token (not a literal) with a given type and offset
+ *
+ * @oparam token := token struct to be initialized
+ * @iparam type := token_type for the token
+ * @iparam offset := offset into the input string
  */
-uint8_t is_operator(token_type type);
+void init_token(token_t* token, token_type type, int32_t offset);
+
+/*
+ * initialize a literal with a given value and offset
+ *
+ * @oparam token := token struct to be initialized
+ * @iparam value := integer value for the literal
+ * @iparam offset := offset into the input string
+ */
+void init_literal(token_t* token, int32_t value, int32_t offset);
 
 /*
  * splits an input string into tokens

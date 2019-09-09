@@ -23,6 +23,10 @@ int main(int argc, char **argv)
     add_test(suite, test_shunting_yard_addition_chain);
     add_test(suite, test_shunting_yard_unmatched_lparen);
     add_test(suite, test_shunting_yard_unmatched_rparen);
+    add_test(suite, test_eval_add);
+    add_test(suite, test_eval_sub);
+    add_test(suite, test_eval_mul);
+    add_test(suite, test_eval_negation);
 
     return run_test_suite(suite, create_text_reporter());
 }

@@ -11,14 +11,14 @@
 
 Ensure(test_tokenize_valid)
 {
-    const char* input = "  +1+  23 * (-456 +0 )";
+    const char* input = "  +1+  23 * (-456 + +0 )";
     int32_t n_tokens;
     token_t* t = tokenize(input, &n_tokens);
 
     assert_that(t != NULL);
-    assert_that(n_tokens == 11);
+    assert_that(n_tokens == 12);
 
-    assert_that(token_is_op(t[0], OP_ADD));
+    assert_that(token_is_op(t[0], OP_POS));
     assert_that(t[0].offset == 2);
 
     assert_that(token_is_literal(t[1], 1));
@@ -36,7 +36,7 @@ Ensure(test_tokenize_valid)
     assert_that(token_is_op(t[5], L_PAREN));
     assert_that(t[5].offset == 12);
 
-    assert_that(token_is_op(t[6], OP_SUB));
+    assert_that(token_is_op(t[6], OP_NEG));
     assert_that(t[6].offset == 13);
 
     assert_that(token_is_literal(t[7], 456));
@@ -45,11 +45,14 @@ Ensure(test_tokenize_valid)
     assert_that(token_is_op(t[8], OP_ADD));
     assert_that(t[8].offset == 18);
 
-    assert_that(token_is_literal(t[9], 0));
-    assert_that(t[9].offset == 19);
+    assert_that(token_is_op(t[9], OP_POS));
+    assert_that(t[9].offset == 20);
 
-    assert_that(token_is_op(t[10], R_PAREN));
+    assert_that(token_is_literal(t[10], 0));
     assert_that(t[10].offset == 21);
+
+    assert_that(token_is_op(t[11], R_PAREN));
+    assert_that(t[11].offset == 23);
 
     free(t);
 }

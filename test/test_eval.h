@@ -113,3 +113,71 @@ Ensure(test_shunting_yard_unmatched_rparen)
     assert_that(rpn == NULL);
     assert_that(n_rpn == (E_UNMATCHED_PAREN | 7));
 }
+
+Ensure(test_eval_add)
+{
+    const char* input = "1 + 2 + 3 + 4";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn != NULL);
+
+    token_t res;
+    int rc = evaluate_rpn(rpn, n_rpn, &res);
+    assert_that(rc == 0);
+    assert_that(token_is_literal(res, 10));
+}
+
+Ensure(test_eval_sub)
+{
+    const char* input = "128 - 64 - 32 - 0";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn != NULL);
+
+    token_t res;
+    int rc = evaluate_rpn(rpn, n_rpn, &res);
+    assert_that(rc == 0);
+    assert_that(token_is_literal(res, 32));
+}
+
+Ensure(test_eval_mul)
+{
+    const char* input = "1 * 2 * 4 * 8";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn != NULL);
+
+    token_t res;
+    int rc = evaluate_rpn(rpn, n_rpn, &res);
+    assert_that(rc == 0);
+    assert_that(token_is_literal(res, 64));
+}
+
+Ensure(test_eval_negation)
+{
+    const char* input = "10 - (-2) - +2 - (-(-10))";
+    int32_t n_tokens;
+    token_t* t = tokenize(input, &n_tokens);
+    assert_that(t != NULL);
+
+    int32_t n_rpn;
+    token_t* rpn = shunting_yard(t, n_tokens, &n_rpn);
+    assert_that(rpn != NULL);
+
+    token_t res;
+    int rc = evaluate_rpn(rpn, n_rpn, &res);
+    assert_that(rc == 0);
+    assert_that(token_is_literal(res, 0));
+}

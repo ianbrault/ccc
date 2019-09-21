@@ -85,10 +85,28 @@ static uint8_t associativity[N_TOKEN_TYPES] = {
 
 #define ASSOC(token) associativity[(token).type]
 
+typedef enum {
+    NONE,
+    INT,
+    FLOAT,
+} literal_type;
+
+typedef union {
+    int64_t i;
+    double f;
+} literal_impl;
+
+typedef struct {
+    literal_type type;
+    literal_impl value;
+} literal;
+
 typedef struct {
     token_type type;
-    int32_t value;   // only used for literals
-    int32_t offset;  // offset from start of input string, used for errors
+    // unused for operator types
+    literal value;
+    // offset from start of input string, used for errors
+    int32_t offset;
 } token_t;
 
 /*
@@ -101,13 +119,22 @@ typedef struct {
 void init_token(token_t* token, token_type type, int32_t offset);
 
 /*
- * initialize a literal with a given value and offset
+ * initialize an literal with a given value and offset
  *
  * @oparam token := token struct to be initialized
  * @iparam value := integer value for the literal
  * @iparam offset := offset into the input string
  */
-void init_literal(token_t* token, int32_t value, int32_t offset);
+void init_literal(token_t* token, literal lit, int32_t offset);
+
+/*
+ * initialize an floating-point literal with a given value and offset
+ *
+ * @oparam token := token struct to be initialized
+ * @iparam value := float value for the literal
+ * @iparam offset := offset into the input string
+ */
+void init_float_literal(token_t* token, double value, int32_t offset);
 
 /*
  * splits an input string into tokens

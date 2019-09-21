@@ -22,9 +22,9 @@ Ensure(test_shunting_yard_basic)
     assert_that(rpn != NULL);
     assert_that(n_rpn == 5);
     // RPN should be: 1 2 3 * +
-    assert_that(token_is_literal(rpn[0], 1));
-    assert_that(token_is_literal(rpn[1], 2));
-    assert_that(token_is_literal(rpn[2], 3));
+    assert_that(token_is_int(rpn[0], 1));
+    assert_that(token_is_int(rpn[1], 2));
+    assert_that(token_is_int(rpn[2], 3));
     assert_that(token_is_op(rpn[3], OP_MUL));
     assert_that(token_is_op(rpn[4], OP_ADD));
 
@@ -43,15 +43,15 @@ Ensure(test_shunting_yard_parens)
     assert_that(rpn != NULL);
     assert_that(n_rpn == 11);
     // RPN should be: 3 4 2 + * 1 5 - 3 * -
-    assert_that(token_is_literal(rpn[0], 3));
-    assert_that(token_is_literal(rpn[1], 4));
-    assert_that(token_is_literal(rpn[2], 2));
+    assert_that(token_is_int(rpn[0], 3));
+    assert_that(token_is_int(rpn[1], 4));
+    assert_that(token_is_int(rpn[2], 2));
     assert_that(token_is_op(rpn[3], OP_ADD));
     assert_that(token_is_op(rpn[4], OP_MUL));
-    assert_that(token_is_literal(rpn[5], 1));
-    assert_that(token_is_literal(rpn[6], 5));
+    assert_that(token_is_int(rpn[5], 1));
+    assert_that(token_is_int(rpn[6], 5));
     assert_that(token_is_op(rpn[7], OP_SUB));
-    assert_that(token_is_literal(rpn[8], 3));
+    assert_that(token_is_int(rpn[8], 3));
     assert_that(token_is_op(rpn[9], OP_MUL));
     assert_that(token_is_op(rpn[10], OP_SUB));
 
@@ -70,14 +70,14 @@ Ensure(test_shunting_yard_addition_chain)
     assert_that(rpn != NULL);
     assert_that(n_rpn == 9);
     // RPN should be: 0 1 + 2 + 3 + 4 +
-    assert_that(token_is_literal(rpn[0], 0));
-    assert_that(token_is_literal(rpn[1], 1));
+    assert_that(token_is_int(rpn[0], 0));
+    assert_that(token_is_int(rpn[1], 1));
     assert_that(token_is_op(rpn[2], OP_ADD));
-    assert_that(token_is_literal(rpn[3], 2));
+    assert_that(token_is_int(rpn[3], 2));
     assert_that(token_is_op(rpn[4], OP_ADD));
-    assert_that(token_is_literal(rpn[5], 3));
+    assert_that(token_is_int(rpn[5], 3));
     assert_that(token_is_op(rpn[6], OP_ADD));
-    assert_that(token_is_literal(rpn[7], 4));
+    assert_that(token_is_int(rpn[7], 4));
     assert_that(token_is_op(rpn[8], OP_ADD));
 
     free(t);
@@ -175,7 +175,7 @@ Ensure(test_eval_add)
     token_t res;
     int rc = evaluate_rpn(rpn, n_rpn, &res);
     assert_that(rc == 0);
-    assert_that(token_is_literal(res, 10));
+    assert_that(token_is_int(res, 10));
 }
 
 Ensure(test_eval_sub)
@@ -192,7 +192,7 @@ Ensure(test_eval_sub)
     token_t res;
     int rc = evaluate_rpn(rpn, n_rpn, &res);
     assert_that(rc == 0);
-    assert_that(token_is_literal(res, 32));
+    assert_that(token_is_int(res, 32));
 }
 
 Ensure(test_eval_mul)
@@ -209,7 +209,7 @@ Ensure(test_eval_mul)
     token_t res;
     int rc = evaluate_rpn(rpn, n_rpn, &res);
     assert_that(rc == 0);
-    assert_that(token_is_literal(res, 64));
+    assert_that(token_is_int(res, 64));
 }
 
 Ensure(test_eval_negation)
@@ -226,7 +226,7 @@ Ensure(test_eval_negation)
     token_t res;
     int rc = evaluate_rpn(rpn, n_rpn, &res);
     assert_that(rc == 0);
-    assert_that(token_is_literal(res, 0));
+    assert_that(token_is_int(res, 0));
 }
 
 Ensure(test_eval_invalid_binary_op)

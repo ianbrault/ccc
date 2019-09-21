@@ -60,19 +60,28 @@ static token_type get_operator_type(const char* c)
  * return the end position of the literal if successful, or return NULL if the
  * string passed is not a literal
  */
-static const char* get_literal(const char* c, int32_t* value)
+static const char* get_literal(const char* c, literal* value)
 {
     char* it;
-    int32_t val = strtol(c, &it, 10);
+    value->type = NONE;
+    // attempt to get an integer literal
+    int64_t val = strtol(c, &it, 10);
     // if it has not moved, not a valid literal
     if (it == c)
     {
         it = NULL;
     }
-    // otherwise get the value of the parsed literal
+    // if strtol ends on a decimal point, the literal is a float
+    else if (*it == '.')
+    {
+        value->value.f = strtod(c, &it);
+        value->type = FLOAT;
+    }
+    // otherwise the literal was just an integer
     else
     {
-        *value = val;
+        value->value.i = val;
+        value->type = INT;
     }
 
     return it;
@@ -80,10 +89,10 @@ static const char* get_literal(const char* c, int32_t* value)
 
 void init_token(token_t* token, token_type type, int32_t offset)
 {
-    *token = (token_t) { .type=type, .value=0, .offset=offset };
+    *token = (token_t) { .type=type, .offset=offset };
 }
 
-void init_literal(token_t* token, int32_t value, int32_t offset)
+void init_literal(token_t* token, literal value, int32_t offset)
 {
     *token = (token_t) { .type=LITERAL, .value=value, .offset=offset };
 }
@@ -166,7 +175,7 @@ token_t* tokenize(const char* input, int32_t* n_tokens)
         }
 
         // otherwise attempt to get a literal
-        int32_t value;
+        literal value;
         it = get_literal(it, &value);
         if (it)
         {

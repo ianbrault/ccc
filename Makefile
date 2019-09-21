@@ -14,7 +14,8 @@ test_dir   := $(base_dir)/test
 _objs := main.o error.o lex.o eval.o
 objs := $(patsubst %,$(build_dir)/%,$(_objs))
 
-_test_objs := test.o lex.o eval.o utils.o
+# _test_objs := test.o lex.o eval.o utils.o
+_test_objs := test.o lex.o utils.o
 test_objs := $(patsubst %,$(build_dir)/%,$(_test_objs))
 
 .PHONY: build cgreen clean test

@@ -12,7 +12,16 @@ uint8_t token_is_op(token_t token, token_type op_type)
     return token.type == op_type;
 }
 
-uint8_t token_is_literal(token_t token, int32_t value)
+uint8_t token_is_int(token_t token, int64_t value)
 {
-    return token.type == LITERAL && token.value == value;
+    uint8_t rc = token.type == LITERAL;
+    rc &= token.value.type == INT && token.value.value.i == value;
+    return rc;
+}
+
+uint8_t token_is_float(token_t token, double value)
+{
+    uint8_t rc = token.type == LITERAL;
+    rc &= token.value.type == FLOAT && token.value.value.f == value;
+    return rc;
 }
